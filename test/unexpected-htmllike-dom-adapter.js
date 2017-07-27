@@ -24,8 +24,11 @@ var adapter = {
   }
 };
 
+var createDocument = function (html) {
+  return new jsdom.JSDOM(html).window.document;
+}
 var createDocumentWithBody = function(body) {
-  return new jsdom.JSDOM('<!DOCTYPE html><html><body>'+body+'</body><html>').window.document;
+  return createDocument('<!DOCTYPE html><html><body>'+body+'</body><html>');
 };
 
 describe('unexpected-htmllike-dom-adapter', function () {
