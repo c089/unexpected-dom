@@ -51,7 +51,8 @@
   },
   "dependencies": {
     "extend": "^3.0.1",
-    "magicpen-prism": "^2.3.0"
+    "magicpen-prism": "^2.3.0",
+    "unexpected-htmllike": "^2.1.2"
   },
   "peerDependencies": {
     "unexpected": "^10.27.0"
