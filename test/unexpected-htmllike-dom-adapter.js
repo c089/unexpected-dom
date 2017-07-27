@@ -134,7 +134,6 @@ describe('unexpected-htmllike-dom-adapter', function () {
     it('should throw when finding a difference', function () {
       var actual = createDocumentWithBody(  '<div id="one"></div>').body.firstChild;
       var expected = createDocumentWithBody('<div id="two"></div>').body.firstChild;
-      expect(expected, 'not to be null');
       expect(function () {
         expect(actual, 'to TODO equal', expected);
 
