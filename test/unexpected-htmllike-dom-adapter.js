@@ -15,8 +15,9 @@ var adapter = {
   },
   getAttributes: function (element) {
     var attributes = {};
+    var attributeNames = (element.getAttributeNames && element.getAttributeNames() || []);
 
-    element.getAttributeNames().forEach(function (attributeName) {
+    attributeNames.forEach(function (attributeName) {
       attributes[attributeName] = element.getAttribute(attributeName);
     });
     return attributes;
@@ -85,9 +86,9 @@ describe('unexpected-htmllike-dom-adapter', function () {
     // when passing jsdom object instead of element
     it('should be able two compare a whole document');
 
-    it('should not find differences when comparing two empty bodies', function () {
-      var subject = createDocumentWithBody('').body;
-      var expected = createDocumentWithBody('').body;
+    it('should not find differences when comparing two empty documents', function () {
+      var subject = createDocumentWithBody('');
+      var expected = createDocumentWithBody('');
       expect(subject, 'not to be', expected);
 
       var diffResult = htmlLike.diff(adapter, subject, expected, expect);
@@ -108,7 +109,7 @@ describe('unexpected-htmllike-dom-adapter', function () {
   describe('integration with unexepected-dom', function () {
     expect.installPlugin(require('magicpen-prism'));
 
-    expect.addAssertion('<DOMElement> to TODO equal <DOMElement>', function (expect, subject, expected) {
+    expect.addAssertion('<DOMDocument|DOMElement> to TODO equal <DOMDocument|DOMElement>', function (expect, subject, expected) {
       var htmlLike = new UnexpectedHtmlLike(adapter);
       var result = htmlLike.diff(adapter, subject, expected, expect);
 
@@ -123,17 +124,18 @@ describe('unexpected-htmllike-dom-adapter', function () {
       }
     });
 
-    it('should not throw when there is no difference', function () {
-      var element1 = createDocumentWithBody('<p />').body.firstChild;
-      var element2 = createDocumentWithBody('<p />').body.firstChild;
+    it('should not throw when diffing two equal documents', function () {
+      var actual = createDocumentWithBody('<div><p /></div>');
+      var expected = createDocumentWithBody('<div><p /></div>');
       expect(function () {
-        expect(element1, 'to TODO equal', element2);
+        expect(actual, 'to TODO equal', expected);
+
       }, 'not to throw');
     });
 
-    it('should throw when finding a difference', function () {
-      var actual = createDocumentWithBody(  '<div id="one"></div>').body.firstChild;
-      var expected = createDocumentWithBody('<div id="two"></div>').body.firstChild;
+    it('should throw when finding a difference in two different DOMElements', function () {
+      var actual = createDocumentWithBody(  '<div id="one"></div>');
+      var expected = createDocumentWithBody('<div id="two"></div>');
       expect(function () {
         expect(actual, 'to TODO equal', expected);
 
