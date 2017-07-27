@@ -109,7 +109,7 @@ describe('unexpected-htmllike-dom-adapter', function () {
   describe('integration with unexepected-dom', function () {
     expect.installPlugin(require('magicpen-prism'));
 
-    expect.addAssertion('<DOMDocument|DOMElement> to TODO equal <DOMDocument|DOMElement>', function (expect, subject, expected) {
+    expect.addAssertion('<DOMDocument|DOMElement> to htmllike-equal <DOMDocument|DOMElement>', function (expect, subject, expected) {
       var htmlLike = new UnexpectedHtmlLike(adapter);
       var result = htmlLike.diff(adapter, subject, expected, expect);
 
@@ -128,7 +128,7 @@ describe('unexpected-htmllike-dom-adapter', function () {
       var actual = createDocumentWithBody('<div><p /></div>');
       var expected = createDocumentWithBody('<div><p /></div>');
       expect(function () {
-        expect(actual, 'to TODO equal', expected);
+        expect(actual, 'to htmllike-equal', expected);
 
       }, 'not to throw');
     });
@@ -137,7 +137,7 @@ describe('unexpected-htmllike-dom-adapter', function () {
       var actual = createDocumentWithBody(  '<div id="one"></div>');
       var expected = createDocumentWithBody('<div id="two"></div>');
       expect(function () {
-        expect(actual, 'to TODO equal', expected);
+        expect(actual, 'to htmllike-equal', expected);
 
       }, 'to throw', /<DIV id="one" \/\/ expected 'one' to equal 'two'/);
     });
