@@ -12,6 +12,15 @@ var UnexpectedHtmlLike = require('unexpected-htmllike');
 var unexpectedDom = require('../lib/index');
 var expect = unexpected.clone().installPlugin(unexpectedDom);
 
+function extractDoctype(node) {
+  var doctype = node.doctype;
+  return {
+    name: doctype.name,
+    publicId: doctype.publicId || '',
+    systemId: doctype.systemId || ''
+  };
+}
+
 var adapter = {
   getName: function (element) {
     return element.nodeName;
@@ -23,8 +32,7 @@ var adapter = {
     var attributes = {};
     var isRoot = element.parentNode === null;
     if (isRoot) {
-      var doctype = element.doctype;
-      return { name: element.doctype.name };
+      return extractDoctype(element);
     }
     var attributeNames = (element.getAttributeNames && element.getAttributeNames() || []);
 
@@ -60,7 +68,7 @@ describe('unexpected-htmllike-dom-adapter', function () {
       var document = createHTML5Document(doctype);
       expect(adapter.getAttributes(document), 'to equal', {
         doctype: {
-          name: doctype, publicId: undefined, systemId: undefined
+          name: doctype, publicId: '', systemId: ''
         }
       });
     });
