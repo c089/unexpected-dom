@@ -1,4 +1,10 @@
 /*global describe, it*/
+var DOCTYPES = {
+  HTML5: '<DOCTYPE HTML>',
+  HTML4: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN\n' +
+    '"http://www.w3.org/TR/html4/strict.dtd">'
+};
+
 var unexpected = require('unexpected');
 var jsdom = require('jsdom');
 var UnexpectedHtmlLike = require('unexpected-htmllike');
@@ -8,13 +14,18 @@ var expect = unexpected.clone().installPlugin(unexpectedDom);
 
 var adapter = {
   getName: function (element) {
-    return element.tagName;
+    return element.nodeName;
   },
   getChildren: function (element) {
     return Array.prototype.slice.call(element.childNodes);
   },
   getAttributes: function (element) {
     var attributes = {};
+    var isRoot = element.parentNode === null;
+    if (isRoot) {
+      var doctype = element.doctype;
+      return { name: element.doctype.name };
+    }
     var attributeNames = (element.getAttributeNames && element.getAttributeNames() || []);
 
     attributeNames.forEach(function (attributeName) {
@@ -26,12 +37,35 @@ var adapter = {
 
 var createDocument = function (html) {
   return new jsdom.JSDOM(html).window.document;
-}
+};
+
 var createDocumentWithBody = function(body) {
   return createDocument('<!DOCTYPE html><html><body>'+body+'</body><html>');
 };
 
+var createHTML5Document = function () {
+  return createDocument(DOCTYPES.HTML5 + '<html><body></body><html>');
+};
+
 describe('unexpected-htmllike-dom-adapter', function () {
+  describe('for the document root', function () {
+    it('returns the correct node name', function () {
+      var document = createDocument();
+      expect(adapter.getName(document), 'to equal', '#document');
+    });
+
+    // TODO: jsdom always has doctype null?
+    it.skip('contains the doctype as an attribute', function () {
+      var doctype = DOCTYPES.HTML5;
+      var document = createHTML5Document(doctype);
+      expect(adapter.getAttributes(document), 'to equal', {
+        doctype: {
+          name: doctype, publicId: undefined, systemId: undefined
+        }
+      });
+    });
+  });
+
   describe('getName(element)', function () {
     it('returns tag name for document body', function () {
       var document = createDocumentWithBody('');
@@ -143,6 +177,16 @@ describe('unexpected-htmllike-dom-adapter', function () {
         expect(actual, 'to htmllike-equal', expected);
 
       }, 'to throw', /<DIV id="one" \/\/ expected 'one' to equal 'two'/);
+    });
+
+    it.skip('should throw when comparing documents with different DOCTYPE', function () {
+      var someHtml =  '<html><body></body></html>';
+      var doc1 = createDocument(DOCTYPES.HTML5 + someHtml);
+      var doc2 = createDocument(DOCTYPES.HTML4 + someHtml);
+
+      expect(function () {
+        expect(doc1, 'to htmllike-equal', doc2);
+      }, 'to throw', '');
     });
 
   });
