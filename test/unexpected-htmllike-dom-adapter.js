@@ -56,7 +56,8 @@ var createHTML5Document = function () {
 };
 
 describe('unexpected-htmllike-dom-adapter', function () {
-  describe('for the document root', function () {
+
+  describe('when given a DocmumentRoot node', function () {
     it('returns the correct node name', function () {
       var document = createDocument();
       expect(adapter.getName(document), 'to equal', '#document');
@@ -74,128 +75,120 @@ describe('unexpected-htmllike-dom-adapter', function () {
     });
   });
 
-  describe('getName(node)', function () {
-    it('returns tag name for document body', function () {
-      var document = createDocumentWithBody('');
-      expect(adapter.getName(document.body), 'to equal', 'BODY');
-    });
+  describe('when given a Element node', function () {
+    describe('getName(node)', function () {
+      it('returns tag name for document body', function () {
+        var document = createDocumentWithBody('');
+        expect(adapter.getName(document.body), 'to equal', 'BODY');
+      });
 
-    it('returns tag name for an input', function () {
-      var html ='<input type="text" />';
-      var document = createDocumentWithBody(html);
-      expect(adapter.getName(document.body.firstChild), 'to equal', 'INPUT'); // TODO: normalize necessary?
-    });
-  });
-
-  describe('getChildren', function () {
-    it('should return empty array for empty body', function () {
-      var node = createDocumentWithBody('').body;
-      expect(adapter.getChildren(node), 'to be empty');
-    });
-
-    it('should return array of nodes for non-empty body', function () {
-      var node = createDocumentWithBody('<p /><p /><p />').body;
-      expect(adapter.getChildren(node), 'to have length', 3);
-    });
-  });
-
-  describe('getAttributes', function () {
-
-    it('returns empty object for node without attributes', function () {
-      var node = createDocumentWithBody('<p />').body.firstChild;
-      expect(adapter.getAttributes(node), 'to equal', {});
-    });
-
-    it('returns object with id attribute', function () {
-      var node = createDocumentWithBody('<div id="id"></div>').body.firstChild;
-      expect(adapter.getAttributes(node), 'to equal', { id: 'id' });
-    });
-
-    it('returns all attributes', function () {
-      var node = createDocumentWithBody('<div id="id" title="title" align="left"></div>').body.firstChild;
-      expect(adapter.getAttributes(node), 'to equal', {
-        id: 'id',
-        title: 'title',
-        align: 'left'
+      it('returns tag name for an input', function () {
+        var html ='<input type="text" />';
+        var document = createDocumentWithBody(html);
+        expect(adapter.getName(document.body.firstChild), 'to equal', 'INPUT'); // TODO: normalize necessary?
       });
     });
 
-    it('can handle function handlers (how?)');
-  });
+    describe('getChildren', function () {
+      it('should return empty array for empty body', function () {
+        var node = createDocumentWithBody('').body;
+        expect(adapter.getChildren(node), 'to be empty');
+      });
 
-  describe('integration with unexpected-htmllike', function () {
-    var htmlLike = new UnexpectedHtmlLike(adapter);
-
-    // TODO check input arguments
-    // e.g.: TypeError: node.getAttributeNames is not a function
-    // when passing jsdom object instead of node
-    it('should be able two compare a whole document');
-
-    it('should not find differences when comparing two empty documents', function () {
-      var subject = createDocumentWithBody('');
-      var expected = createDocumentWithBody('');
-      expect(subject, 'not to be', expected);
-
-      var diffResult = htmlLike.diff(adapter, subject, expected, expect);
-
-      expect(diffResult.weight, 'to be', 0);
+      it('should return array of nodes for non-empty body', function () {
+        var node = createDocumentWithBody('<p /><p /><p />').body;
+        expect(adapter.getChildren(node), 'to have length', 3);
+      });
     });
 
-    it('finds a difference comparing a div to an empty list', function () {
-      var subject = createDocumentWithBody('<p />').body.firstChild;
-      var expected = createDocumentWithBody('').body.firstChild;
+    describe('getAttributes', function () {
 
-      var diffResult = htmlLike.diff(adapter, subject, expected, expect);
-      expect(diffResult.weight, 'to be positive');
-    });
+      it('returns empty object for node without attributes', function () {
+        var node = createDocumentWithBody('<p />').body.firstChild;
+        expect(adapter.getAttributes(node), 'to equal', {});
+      });
 
-  });
+      it('returns object with id attribute', function () {
+        var node = createDocumentWithBody('<div id="id"></div>').body.firstChild;
+        expect(adapter.getAttributes(node), 'to equal', { id: 'id' });
+      });
 
-  describe('integration with unexepected-dom', function () {
-    expect.installPlugin(require('magicpen-prism'));
-
-    expect.addAssertion('<DOMDocument|DOMElement> to htmllike-equal <DOMDocument|DOMElement>', function (expect, subject, expected) {
-      var htmlLike = new UnexpectedHtmlLike(adapter);
-      var result = htmlLike.diff(adapter, subject, expected, expect);
-
-      if (result.weight !== 0) {
-        return expect.fail({
-          diff: function (output, diff, inspect) {
-            return {
-              diff: htmlLike.render(result, output, diff, inspect)
-            };
-          }
+      it('returns all attributes', function () {
+        var node = createDocumentWithBody('<div id="id" title="title" align="left"></div>').body.firstChild;
+        expect(adapter.getAttributes(node), 'to equal', {
+          id: 'id',
+          title: 'title',
+          align: 'left'
         });
-      }
+      });
+
+      it('can handle function handlers (how?)');
+
     });
+  });
+});
 
-    it('should not throw when diffing two equal documents', function () {
-      var actual = createDocumentWithBody('<div><p /></div>');
-      var expected = createDocumentWithBody('<div><p /></div>');
-      expect(function () {
-        expect(actual, 'to htmllike-equal', expected);
+describe('integration with unexpected-htmllike', function () {
+  var htmlLike = new UnexpectedHtmlLike(adapter);
 
-      }, 'not to throw');
-    });
+  // TODO check input arguments
+  // e.g.: TypeError: node.getAttributeNames is not a function
+  // when passing jsdom object instead of node
+  it('should be able two compare a whole document');
 
-    it('should throw when finding a difference in two different DOMElements', function () {
-      var actual = createDocumentWithBody(  '<div id="one"></div>');
-      var expected = createDocumentWithBody('<div id="two"></div>');
-      expect(function () {
-        expect(actual, 'to htmllike-equal', expected);
+  it('should not find differences when comparing two empty documents', function () {
+    var subject = createDocumentWithBody('');
+    var expected = createDocumentWithBody('');
+    expect(subject, 'not to be', expected);
 
-      }, 'to throw', /<DIV id="one" \/\/ expected 'one' to equal 'two'/);
-    });
+    var diffResult = htmlLike.diff(adapter, subject, expected, expect);
 
-    it.skip('should throw when comparing documents with different DOCTYPE', function () {
-      var someHtml =  '<html><body></body></html>';
-      var doc1 = createDocument(DOCTYPES.HTML5 + someHtml);
-      var doc2 = createDocument(DOCTYPES.HTML4 + someHtml);
+    expect(diffResult.weight, 'to be', 0);
+  });
 
-      expect(function () {
-        expect(doc1, 'to htmllike-equal', doc2);
-      }, 'to throw', '');
-    });
+  it('finds a difference comparing a div to an empty list', function () {
+    var subject = createDocumentWithBody('<p />').body.firstChild;
+    var expected = createDocumentWithBody('').body.firstChild;
 
+    var diffResult = htmlLike.diff(adapter, subject, expected, expect);
+    expect(diffResult.weight, 'to be positive');
+  });
+
+});
+
+describe('integration with unexepected-dom', function () {
+  expect.installPlugin(require('magicpen-prism'));
+
+  expect.addAssertion('<DOMDocument|DOMElement> to htmllike-equal <DOMDocument|DOMElement>', function (expect, subject, expected) {
+    var htmlLike = new UnexpectedHtmlLike(adapter);
+    var result = htmlLike.diff(adapter, subject, expected, expect);
+
+    if (result.weight !== 0) {
+      return expect.fail({
+        diff: function (output, diff, inspect) {
+          return {
+            diff: htmlLike.render(result, output, diff, inspect)
+          };
+        }
+      });
+    }
+  });
+
+  it('should pass when diffing equal documents', function () {
+    var actual = createDocumentWithBody('<div><p /></div>');
+    var expected = createDocumentWithBody('<div><p /></div>');
+    expect(function () {
+      expect(actual, 'to htmllike-equal', expected);
+
+    }, 'not to throw');
+  });
+
+  it('should fail when diffing two different documents', function () {
+    var actual = createDocumentWithBody(  '<div id="one"></div>');
+    var expected = createDocumentWithBody('<div id="two"></div>');
+    expect(function () {
+      expect(actual, 'to htmllike-equal', expected);
+
+    }, 'to throw', /<DIV id="one" \/\/ expected 'one' to equal 'two'/);
   });
 });
