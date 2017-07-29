@@ -22,22 +22,22 @@ function extractDoctype(node) {
 }
 
 var adapter = {
-  getName: function (element) {
-    return element.nodeName;
+  getName: function (node) {
+    return node.nodeName;
   },
-  getChildren: function (element) {
-    return Array.prototype.slice.call(element.childNodes);
+  getChildren: function (node) {
+    return Array.prototype.slice.call(node.childNodes);
   },
-  getAttributes: function (element) {
+  getAttributes: function (node) {
     var attributes = {};
-    var isRoot = element.parentNode === null;
+    var isRoot = node.parentNode === null;
     if (isRoot) {
-      return extractDoctype(element);
+      return extractDoctype(node);
     }
-    var attributeNames = (element.getAttributeNames && element.getAttributeNames() || []);
+    var attributeNames = (node.getAttributeNames && node.getAttributeNames() || []);
 
     attributeNames.forEach(function (attributeName) {
-      attributes[attributeName] = element.getAttribute(attributeName);
+      attributes[attributeName] = node.getAttribute(attributeName);
     });
     return attributes;
   }
@@ -74,7 +74,7 @@ describe('unexpected-htmllike-dom-adapter', function () {
     });
   });
 
-  describe('getName(element)', function () {
+  describe('getName(node)', function () {
     it('returns tag name for document body', function () {
       var document = createDocumentWithBody('');
       expect(adapter.getName(document.body), 'to equal', 'BODY');
@@ -89,31 +89,31 @@ describe('unexpected-htmllike-dom-adapter', function () {
 
   describe('getChildren', function () {
     it('should return empty array for empty body', function () {
-      var element = createDocumentWithBody('').body;
-      expect(adapter.getChildren(element), 'to be empty');
+      var node = createDocumentWithBody('').body;
+      expect(adapter.getChildren(node), 'to be empty');
     });
 
     it('should return array of nodes for non-empty body', function () {
-      var element = createDocumentWithBody('<p /><p /><p />').body;
-      expect(adapter.getChildren(element), 'to have length', 3);
+      var node = createDocumentWithBody('<p /><p /><p />').body;
+      expect(adapter.getChildren(node), 'to have length', 3);
     });
   });
 
   describe('getAttributes', function () {
 
-    it('returns empty object for element without attributes', function () {
-      var element = createDocumentWithBody('<p />').body.firstChild;
-      expect(adapter.getAttributes(element), 'to equal', {});
+    it('returns empty object for node without attributes', function () {
+      var node = createDocumentWithBody('<p />').body.firstChild;
+      expect(adapter.getAttributes(node), 'to equal', {});
     });
 
     it('returns object with id attribute', function () {
-      var element = createDocumentWithBody('<div id="id"></div>').body.firstChild;
-      expect(adapter.getAttributes(element), 'to equal', { id: 'id' });
+      var node = createDocumentWithBody('<div id="id"></div>').body.firstChild;
+      expect(adapter.getAttributes(node), 'to equal', { id: 'id' });
     });
 
     it('returns all attributes', function () {
-      var element = createDocumentWithBody('<div id="id" title="title" align="left"></div>').body.firstChild;
-      expect(adapter.getAttributes(element), 'to equal', {
+      var node = createDocumentWithBody('<div id="id" title="title" align="left"></div>').body.firstChild;
+      expect(adapter.getAttributes(node), 'to equal', {
         id: 'id',
         title: 'title',
         align: 'left'
@@ -127,8 +127,8 @@ describe('unexpected-htmllike-dom-adapter', function () {
     var htmlLike = new UnexpectedHtmlLike(adapter);
 
     // TODO check input arguments
-    // e.g.: TypeError: element.getAttributeNames is not a function
-    // when passing jsdom object instead of element
+    // e.g.: TypeError: node.getAttributeNames is not a function
+    // when passing jsdom object instead of node
     it('should be able two compare a whole document');
 
     it('should not find differences when comparing two empty documents', function () {
