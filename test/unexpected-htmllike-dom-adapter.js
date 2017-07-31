@@ -26,7 +26,14 @@ var adapter = {
     return node.nodeName;
   },
   getChildren: function (node) {
-    return Array.prototype.slice.call(node.childNodes);
+
+    var nodes = Array.prototype.slice.call(node.childNodes);
+    return nodes.map(node => {
+      if (node.nodeType === 3) {
+        return node.textContent;
+      }
+      return node;
+    });
   },
   getAttributes: function (node) {
     var attributes = {};
@@ -99,6 +106,12 @@ describe('unexpected-htmllike-dom-adapter', function () {
         var node = createDocumentWithBody('<p /><p /><p />').body;
         expect(adapter.getChildren(node), 'to have length', 3);
       });
+
+      it('should return text content of text element nodes', function () {
+        var node = createDocumentWithBody('<p>one</p>').body.firstChild;
+        expect(adapter.getChildren(node), 'to equal', ['one']);
+      });
+
     });
 
     describe('getAttributes', function () {
@@ -153,7 +166,6 @@ describe('integration with unexpected-htmllike', function () {
     var diffResult = htmlLike.diff(adapter, subject, expected, expect);
     expect(diffResult.weight, 'to be positive');
   });
-
 });
 
 describe('integration with unexepected-dom', function () {
@@ -190,5 +202,13 @@ describe('integration with unexepected-dom', function () {
       expect(actual, 'to htmllike-equal', expected);
 
     }, 'to throw', /<DIV id="one" \/\/ expected 'one' to equal 'two'/);
+  });
+
+  it('should fail when diffing elements with different text content', function () {
+    var document1 = createDocumentWithBody('<div>actual</div>');
+    var document2 = createDocumentWithBody('<div>expected</div>');
+    expect(function () {
+      expect(document1, 'to htmllike-equal', document2);
+    }, 'to throw');
   });
 });
