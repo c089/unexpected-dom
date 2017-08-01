@@ -130,6 +130,27 @@ describe('integration with unexpected-htmllike', function () {
     var diffResult = htmlLike.diff(adapter, subject, expected, expect);
     expect(diffResult.weight, 'to be positive');
   });
+
+  describe('contains()', function () {
+    it('finds match when element contains other element', function () {
+      var outer = createDocumentWithBody('<div><span>1</span></div>').body.firstChild;
+      var div = createDocumentWithBody('<span>1</div>').body.firstChild;
+
+      var contains = htmlLike.contains(adapter, outer, div, expect);
+
+      expect(contains, 'to have property', 'found', true);
+      expect(contains, 'to have property', 'bestMatchItem', div);
+    });
+
+    it('finds no match when element does not contain other element', function () {
+      var outer = createDocumentWithBody('<div><span>1</span></div>').body.firstChild;
+      var div = createDocumentWithBody('<p>2</p>').body.firstChild;
+
+      var contains = htmlLike.contains(adapter, outer, div, expect);
+
+      expect(contains, 'to have property', 'found', false);
+    });
+  });
 });
 
 describe('integration with unexepected-dom', function () {
@@ -150,6 +171,22 @@ describe('integration with unexepected-dom', function () {
     }
   });
 
+  expect.addAssertion('<DOMElement> to contain element <DOMElement>', function (expect, subject, expected) {
+    var htmlLike = new UnexpectedHtmlLike(adapter);
+    var result = htmlLike.contains(adapter, subject, expected, expect);
+
+   if (!result.found) {
+      expect.fail({
+        diff: function (output, diff, inspect) {
+          return {
+            diff: htmlLike.render(result.bestMatch, output, diff, inspect)
+          };
+        }
+      });
+   }
+
+
+  });
   it('should pass when diffing equal documents', function () {
     var actual = createDocumentWithBody('<div><p /></div>');
     var expected = createDocumentWithBody('<div><p /></div>');
@@ -174,5 +211,24 @@ describe('integration with unexepected-dom', function () {
     expect(function () {
       expect(document1, 'to htmllike-equal', document2);
     }, 'to throw');
+  });
+
+  describe('to contain element', function () {
+    it('should pass when calling with contained elements', function () {
+      var element1 = createDocumentWithBody('<div><span>1</span></div>').body.firstChild;
+      var element2 = createDocumentWithBody('<span>1</span>').body.firstChild;
+      expect(function () {
+        expect(element1, 'to contain element', element2);
+      }, 'not to throw');
+    });
+
+    it('should fail when expecting it to contain an element it does not contain', function () {
+      var element1 = createDocumentWithBody('<div><span>1</span></div>').body.firstChild;
+      var element2 = createDocumentWithBody('<p>other</p>').body.firstChild;
+      expect(function () {
+        expect(element1, 'to contain element', element2);
+      }, 'to throw', 'expected <div><span>1</span></div> to contain element <p>other</p>\n\n<SPAN // should be <P\n>\n  1 // -1\n    // +other\n</SPAN>');
+    });
+
   });
 });
