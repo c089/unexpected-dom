@@ -143,37 +143,6 @@ describe('integration with unexpected-htmllike', function () {
 describe('integration with unexepected-dom', function () {
   expect.installPlugin(require('magicpen-prism'));
 
-  expect.addAssertion('<DOMDocument|DOMElement> to htmllike-equal <DOMDocument|DOMElement>', function (expect, subject, expected) {
-    var htmlLike = new UnexpectedHtmlLike(adapter);
-    var result = htmlLike.diff(adapter, subject, expected, expect);
-
-    if (result.weight !== 0) {
-      return expect.fail({
-        diff: function (output, diff, inspect) {
-          return {
-            diff: htmlLike.render(result, output, diff, inspect)
-          };
-        }
-      });
-    }
-  });
-
-  expect.addAssertion('<DOMElement> to contain element <DOMElement>', function (expect, subject, expected) {
-    var htmlLike = new UnexpectedHtmlLike(adapter);
-    var result = htmlLike.contains(adapter, subject, expected, expect);
-
-   if (!result.found) {
-      expect.fail({
-        diff: function (output, diff, inspect) {
-          return {
-            diff: htmlLike.render(result.bestMatch, output, diff, inspect)
-          };
-        }
-      });
-   }
-
-
-  });
   it('should pass when diffing equal documents', function () {
     var actual = createDocumentWithBody('<div><p /></div>');
     var expected = createDocumentWithBody('<div><p /></div>');
