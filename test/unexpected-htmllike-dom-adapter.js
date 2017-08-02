@@ -26,6 +26,10 @@ var createHTML5Document = function () {
   return createDocument(DOCTYPES.HTML5 + '<html><body></body><html>');
 };
 
+var createElement = function (html) {
+  return createDocumentWithBody(html).body.firstChild;
+};
+
 var createXMLDocument = function (content) {
   return new jsdom.JSDOM(content, {
     contentType: 'text/xml'
@@ -66,8 +70,8 @@ describe('unexpected-htmllike-dom-adapter', function () {
 
       it('returns tag name for an input', function () {
         var html ='<input type="text" />';
-        var document = createDocumentWithBody(html);
-        expect(adapter.getName(document.body.firstChild), 'to equal', 'INPUT'); // TODO: normalize necessary?
+        var element = createElement(html);
+        expect(adapter.getName(element), 'to equal', 'INPUT'); // TODO: normalize necessary?
       });
     });
 
@@ -83,7 +87,7 @@ describe('unexpected-htmllike-dom-adapter', function () {
       });
 
       it('should return text content of text element nodes', function () {
-        var node = createDocumentWithBody('<p>one</p>').body.firstChild;
+        var node = createElement('<p>one</p>');
         expect(adapter.getChildren(node), 'to equal', ['one']);
       });
 
@@ -92,17 +96,17 @@ describe('unexpected-htmllike-dom-adapter', function () {
     describe('getAttributes', function () {
 
       it('returns empty object for node without attributes', function () {
-        var node = createDocumentWithBody('<p />').body.firstChild;
+        var node = createElement('<p />');
         expect(adapter.getAttributes(node), 'to equal', {});
       });
 
       it('returns object with id attribute', function () {
-        var node = createDocumentWithBody('<div id="id"></div>').body.firstChild;
+        var node = createElement('<div id="id"></div>');
         expect(adapter.getAttributes(node), 'to equal', { id: 'id' });
       });
 
       it('returns all attributes', function () {
-        var node = createDocumentWithBody('<div id="id" title="title" align="left"></div>').body.firstChild;
+        var node = createElement('<div id="id" title="title" align="left"></div>');
         expect(adapter.getAttributes(node), 'to equal', {
           id: 'id',
           title: 'title',
@@ -134,9 +138,9 @@ describe('integration with unexpected-htmllike', function () {
     expect(diffResult.weight, 'to be', 0);
   });
 
-  it('finds a difference comparing a div to an empty list', function () {
-    var subject = createDocumentWithBody('<p />').body.firstChild;
-    var expected = createDocumentWithBody('').body.firstChild;
+  it('finds a difference comparing a div to null (no children)', function () {
+    var subject = createElement('<p />');
+    var expected = null;
 
     var diffResult = htmlLike.diff(adapter, subject, expected, expect);
     expect(diffResult.weight, 'to be positive');
@@ -144,8 +148,8 @@ describe('integration with unexpected-htmllike', function () {
 
   describe('contains()', function () {
     it('finds match when element contains other element', function () {
-      var outer = createDocumentWithBody('<div><span>1</span></div>').body.firstChild;
-      var div = createDocumentWithBody('<span>1</div>').body.firstChild;
+      var outer = createElement('<div><span>1</span></div>');
+      var div = createElement('<span>1</div>');
 
       var contains = htmlLike.contains(adapter, outer, div, expect);
 
@@ -154,8 +158,8 @@ describe('integration with unexpected-htmllike', function () {
     });
 
     it('finds no match when element does not contain other element', function () {
-      var outer = createDocumentWithBody('<div><span>1</span></div>').body.firstChild;
-      var div = createDocumentWithBody('<p>2</p>').body.firstChild;
+      var outer = createElement('<div><span>1</span></div>');
+      var div = createElement('<p>2</p>');
 
       var contains = htmlLike.contains(adapter, outer, div, expect);
 
@@ -226,16 +230,16 @@ describe('integration with unexepected-dom', function () {
 
   describe('to contain element', function () {
     it('should pass when calling with contained elements', function () {
-      var element1 = createDocumentWithBody('<div><span>1</span></div>').body.firstChild;
-      var element2 = createDocumentWithBody('<span>1</span>').body.firstChild;
+      var element1 = createElement('<div><span>1</span></div>');
+      var element2 = createElement('<span>1</span>');
       expect(function () {
         expect(element1, 'to contain element', element2);
       }, 'not to throw');
     });
 
     it('should fail when expecting it to contain an element it does not contain', function () {
-      var element1 = createDocumentWithBody('<div><span>1</span></div>').body.firstChild;
-      var element2 = createDocumentWithBody('<p>other</p>').body.firstChild;
+      var element1 = createElement('<div><span>1</span></div>');
+      var element2 = createElement('<p>other</p>');
       expect(function () {
         expect(element1, 'to contain element', element2);
       }, 'to throw', 'expected <div><span>1</span></div> to contain element <p>other</p>\n\n<SPAN // should be <P\n>\n  1 // -1\n    // +other\n</SPAN>');
