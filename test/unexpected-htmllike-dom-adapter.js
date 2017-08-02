@@ -141,7 +141,6 @@ describe('integration with unexpected-htmllike', function () {
 });
 
 describe('integration with unexepected-dom', function () {
-  expect.installPlugin(require('magicpen-prism'));
 
   it('should pass when diffing equal documents', function () {
     var actual = createDocumentWithBody('<div><p /></div>');
