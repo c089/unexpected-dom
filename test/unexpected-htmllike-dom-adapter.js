@@ -1,40 +1,12 @@
 /*global describe, it*/
-var DOCTYPES = {
-  HTML5: '<DOCTYPE HTML>',
-  HTML4: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN\n' +
-    '"http://www.w3.org/TR/html4/strict.dtd">'
-};
-
 var unexpected = require('unexpected');
-var jsdom = require('jsdom');
 var UnexpectedHtmlLike = require('unexpected-htmllike');
+var jsdom = require('jsdom');
 
 var unexpectedDom = require('../lib/index');
-var expect = unexpected.clone().installPlugin(unexpectedDom);
-
 var adapter = require('../lib/htmllike').adapter;
 
-var createDocument = function (html) {
-  return new jsdom.JSDOM(html).window.document;
-};
-
-var createDocumentWithBody = function(body) {
-  return createDocument('<!DOCTYPE html><html><body>'+body+'</body><html>');
-};
-
-var createHTML5Document = function () {
-  return createDocument(DOCTYPES.HTML5 + '<html><body></body><html>');
-};
-
-var createElement = function (html) {
-  return createDocumentWithBody(html).body.firstChild;
-};
-
-var createXMLDocument = function (content) {
-  return new jsdom.JSDOM(content, {
-    contentType: 'text/xml'
-  }).window.document;
-};
+var expect = unexpected.clone().installPlugin(unexpectedDom);
 
 describe('unexpected-htmllike-dom-adapter', function () {
 
@@ -270,3 +242,31 @@ describe('integration with unexepected-dom', function () {
 
   });
 });
+
+var DOCTYPES = {
+  HTML5: '<DOCTYPE HTML>',
+  HTML4: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN\n' +
+    '"http://www.w3.org/TR/html4/strict.dtd">'
+};
+
+var createDocument = function (html) {
+  return new jsdom.JSDOM(html).window.document;
+};
+
+var createDocumentWithBody = function(body) {
+  return createDocument('<!DOCTYPE html><html><body>'+body+'</body><html>');
+};
+
+var createHTML5Document = function () {
+  return createDocument(DOCTYPES.HTML5 + '<html><body></body><html>');
+};
+
+var createElement = function (html) {
+  return createDocumentWithBody(html).body.firstChild;
+};
+
+var createXMLDocument = function (content) {
+  return new jsdom.JSDOM(content, {
+    contentType: 'text/xml'
+  }).window.document;
+};
