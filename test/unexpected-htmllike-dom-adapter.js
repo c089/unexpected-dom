@@ -26,12 +26,23 @@ var createHTML5Document = function () {
   return createDocument(DOCTYPES.HTML5 + '<html><body></body><html>');
 };
 
+var createXMLDocument = function (content) {
+  return new jsdom.JSDOM(content, {
+    contentType: 'text/xml'
+  }).window.document;
+};
+
 describe('unexpected-htmllike-dom-adapter', function () {
 
-  describe('when given a DocmumentRoot node', function () {
+  describe('when given a HTML DocmumentRoot node', function () {
     it('returns the correct node name', function () {
       var document = createDocument();
       expect(adapter.getName(document), 'to equal', '#document');
+    });
+
+    it('has empty attributs for no DOCTYPE', function () {
+      var document = createDocument();
+      expect(adapter.getAttributes(document), 'to equal', {});
     });
 
     // TODO: jsdom always has doctype null?
@@ -228,6 +239,29 @@ describe('integration with unexepected-dom', function () {
       expect(function () {
         expect(element1, 'to contain element', element2);
       }, 'to throw', 'expected <div><span>1</span></div> to contain element <p>other</p>\n\n<SPAN // should be <P\n>\n  1 // -1\n    // +other\n</SPAN>');
+    });
+
+  });
+
+  describe('working on XLM elements', function () {
+
+    it('should pass when comparing two identical XML documents', function () {
+      var xml = '<?xml version="1.0"?><some-data>some value</some-data>';
+      var document1 = createXMLDocument(xml);
+      var document2 = createXMLDocument(xml);
+      expect(function () {
+        expect(document1, 'to htmllike-equal', document2);
+      }, 'not to throw');
+    });
+
+    it('should fail when comparing XML with different content', function () {
+      var createXml = content =>`<?xml version="1.0"?>${content}`;
+      var document1 = createXMLDocument(createXml('<some-data>some value</some-data>'));
+      var document2 = createXMLDocument(createXml('<some-data>other  val</some-data>'));
+
+      expect(function () {
+        expect(document1, 'to htmllike-equal', document2);
+      }, 'to throw');
     });
 
   });
